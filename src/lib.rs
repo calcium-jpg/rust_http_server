@@ -18,21 +18,17 @@ pub fn handler(mut stream: TcpStream) {
         .take_while(|line| !line.is_empty())
         .collect();
 
-    println!("{:#?}", http_request);
-
     let start_line = &http_request[0];
 
     let http_response: HttpResponse = match start_line.as_str() {
-        "GET / HTTP/1.1" => send_file("hello.html"),
+        "GET / HTTP/1.1" => file_handler("hello.html"),
         _ => not_found_handler(),
     };
-
-    println!("Request: {:#?}", http_request);
 
     stream.write_all(http_response.format().as_bytes()).unwrap();
 }
 
-pub fn send_file(filename: &str) -> HttpResponse {
+pub fn file_handler(filename: &str) -> HttpResponse {
     match fs::read_to_string(format!("pages/{}", filename)) {
         Ok(content) => HttpResponse::new(HttpStatus::new(200, "Ok".to_string()), content),
         Err(_err) => match fs::read_to_string("pages/404.html") {
